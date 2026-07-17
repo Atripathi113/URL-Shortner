@@ -1,16 +1,46 @@
-# React + Vite
+# Client (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React frontend for the URL Shortener. Handles the UI for shortening links, logging in/registering, and the dashboard where logged-in users can see and manage their links.
 
-Currently, two official plugins are available:
+See the [main README](../README.md) for the full project overview, how the backend/auth works, and setup instructions for the whole app.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+- **React + Vite** — UI and dev server
+- **TanStack Router** — routing, including the auth guard on `/dashboard`
+- **TanStack Query** — fetches and caches the user's URL list, handles the polling that keeps click counts updated
+- **Redux Toolkit** — just holds auth state (`user`, `isAuthenticated`)
+- **Tailwind CSS** — styling
+- **Axios** — API calls, with a shared instance and interceptors for error handling
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Folder layout
 
-## Expanding the ESLint configuration
+```
+src/
+  api/          axios calls (user.api.js, shortUrl.api.js)
+  components/    LoginForm, RegisterForm, UrlForm, UserUrl, Navbar
+  pages/         HomePage, AuthPage, DashboardPage
+  routing/       route definitions + route tree
+  store/         redux store + authSlice
+  utils/         axiosInstance, checkAuth helper
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Running it
+
+```bash
+npm install
+npm run dev
+```
+
+Needs a `.env` file in this folder with:
+```
+VITE_APP_URL=http://localhost:3000
+```
+
+That should point at wherever the backend is running — used to build the actual shortened link URLs shown on the dashboard.
+
+## Notes
+
+- The dashboard route is protected by `checkAuth` in `routing/dashboard.js` — if you're not logged in, you get redirected before the page even renders.
+- `UserUrl.jsx` polls every 30 seconds via `refetchInterval` so click counts stay reasonably fresh without a manual refresh.
+- Creating a new link calls `queryClient.invalidateQueries` so the dashboard list updates immediately instead of waiting for the next poll.
